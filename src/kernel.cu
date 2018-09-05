@@ -168,6 +168,21 @@ void Boids::initSimulation(int N) {
   gridMinimum.y -= halfGridWidth;
   gridMinimum.z -= halfGridWidth;
 
+  cudaMalloc((void**)&dev_particleArrayIndices, N * sizeof(int));
+  checkCUDAErrorWithLine("cudaMalloc dev_pos failed!");
+
+  cudaMalloc((void**)&dev_particleGridIndices, N * sizeof(int));
+  checkCUDAErrorWithLine("cudaMalloc dev_pos failed!");
+
+  cudaMalloc((void**)&dev_gridCellStartIndices, gridCellCount * sizeof(int));
+  checkCUDAErrorWithLine("cudaMalloc dev_pos failed!");
+
+  cudaMalloc((void**)&dev_gridCellEndIndices, gridCellCount * sizeof(int));
+  checkCUDAErrorWithLine("cudaMalloc dev_pos failed!");
+
+  dev_thrust_particleArrayIndices = thrust::device_ptr<int>(dev_particleArrayIndices);
+  dev_thrust_particleGridIndices = thrust::device_ptr<int>(dev_particleGridIndices);
+
   // TODO-2.1 TODO-2.3 - Allocate additional buffers here.
   cudaDeviceSynchronize();
 }
@@ -367,6 +382,18 @@ __global__ void kernIdentifyCellStartEnd(int N, int *particleGridIndices,
   // "this index doesn't match the one before it, must be a new cell!"
 }
 
+__global__ void kernSetArrayAndGridIndices(int N, int* arrayIndices, int* gridIndices, glm::vec3* pos) {
+  // Update position by velocity
+  int index = threadIdx.x + (blockIdx.x * blockDim.x);
+  if (index >= N) {
+    return;
+  }
+
+  arrayIndices[index] = index;
+  const glm::vec3 gridIndex = glm::floor(pos[index] / gridCellWidth);
+  gridIndices[index] = gridIndex3Dto1D(gridIndex.x, gridIndex.y, gridIndex.z, gridSideCount);
+}
+
 __global__ void kernUpdateVelNeighborSearchScattered(
   int N, int gridResolution, glm::vec3 gridMin,
   float inverseCellWidth, float cellWidth,
@@ -435,6 +462,21 @@ void Boids::stepSimulationScatteredGrid(float dt) {
   // - Perform velocity updates using neighbor search
   // - Update positions
   // - Ping-pong buffers as needed
+
+  dim3 fullBlocksPerGrid((numObjects + blockSize - 1) / blockSize);
+
+  kernSetArrayAndGridIndices<<<fullBlocksPerGrid, blockSize>>>(numObjects, dev_particleArrayIndices, dev_particleGridIndices, dev_pos);
+  thrust::sort_by_key(dev_thrust_particleGridIndices, dev_thrust_particleGridIndices + numObjects, dev_thrust_particleArrayIndices);
+  int start = -1;
+  // for (int idx = 0; idx < numObjects; ++idx)
+  // {
+  //   int current = dev_particleGridIndices[idx];
+  //
+  //   if (start == -1)
+  //   {
+  //     start = current;
+  //   }
+  // }
 }
 
 void Boids::stepSimulationCoherentGrid(float dt) {
@@ -459,6 +501,11 @@ void Boids::endSimulation() {
   cudaFree(dev_vel1);
   cudaFree(dev_vel2);
   cudaFree(dev_pos);
+
+  cudaFree(dev_particleArrayIndices);
+  cudaFree(dev_particleGridIndices);
+  cudaFree(dev_gridCellStartIndices);
+  cudaFree(dev_gridCellEndIndices);
 
   // TODO-2.1 TODO-2.3 - Free any additional buffers here.
 }
