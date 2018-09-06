@@ -271,16 +271,37 @@ __device__ glm::vec3 computeVelocityChange(int N, int iSelf, const glm::vec3 *po
   const glm::vec3 boidPosition = pos[iSelf];
   glm::vec3 perceivedVelocity =  glm::vec3(0);
 
+  glm::vec3 tempVector2 = glm::vec3(0);
+  glm::vec3 tempVector3 = glm::vec3(0);
+
   int rule1Count = 0;
   int rule3Count = 0;
 
   // Rule 1
   for (int idx = 0; idx < N; ++idx)
   {
-    if (idx != iSelf && glm::distance2(boidPosition, pos[idx]) <= rule1Distance * rule1Distance)
+    if (idx == iSelf)
     {
-      perceivedCenter += pos[idx];
+      continue;
+    }
+
+    glm::vec3 targetPos = pos[idx];
+
+    if (glm::distance2(boidPosition, targetPos) <= rule1Distance * rule1Distance)
+    {
+      perceivedCenter += targetPos;
       ++rule1Count;
+    }
+
+    if (glm::distance2(boidPosition, targetPos) <= rule2Distance * rule2Distance)
+    {
+      tempVector2 -= (targetPos - boidPosition);
+    }
+
+    if (glm::distance2(boidPosition, targetPos) <= rule3Distance * rule3Distance)
+    {
+      tempVector3 += vel[idx];
+      ++rule3Count;
     }
   }
 
@@ -289,33 +310,11 @@ __device__ glm::vec3 computeVelocityChange(int N, int iSelf, const glm::vec3 *po
     perceivedVelocity = (perceivedCenter - boidPosition) * rule1Scale;
   }
 
-  // Rule 2
-  glm::vec3 tempVector = glm::vec3(0);
-  for (int idx = 0; idx < N; ++idx)
-  {
-    if (idx != iSelf && glm::distance2(boidPosition, pos[idx]) <= rule2Distance * rule2Distance)
-    {
-      tempVector -= (boidPosition - pos[idx]);
-    }
-  }
-
-  perceivedVelocity += (tempVector * rule2Scale);
-
-  // Rule 3
-  tempVector = glm::vec3(0);
-
-  for (int idx = 0; idx < N; ++idx)
-  {
-    if (idx != iSelf && glm::distance2(boidPosition, pos[idx]) <= rule3Distance * rule3Distance)
-    {
-      tempVector += vel[idx];
-      ++rule3Count;
-    }
-  }
+  perceivedVelocity += (tempVector2 * rule2Scale);
 
   if (rule3Count > 0) {
-    tempVector = tempVector / float(rule3Count);
-    perceivedVelocity += (tempVector * rule3Scale);
+    tempVector3 = tempVector3 / float(rule3Count);
+    perceivedVelocity += (tempVector3 * rule3Scale);
   }
 
   return perceivedVelocity;
