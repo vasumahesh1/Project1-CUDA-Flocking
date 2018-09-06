@@ -476,23 +476,18 @@ __global__ void kernUpdateVelNeighborSearchScattered(
     return;
   }
 
-  const float halfX = gridMin.x;
-  const float halfY = gridMin.y;
-  const float halfZ = gridMin.z;
+  const float maxSearchDistance = glm::max(glm::max(rule1Distance, rule2Distance), rule3Distance);
 
-  const int GRID_MAX_X = gridResolution;
-  const int GRID_MAX_Y = gridResolution;
-  const int GRID_MAX_Z = gridResolution;
+  const glm::vec3 minGridIndex = glm::floor((pos[index] - gridMin - glm::vec3(maxSearchDistance)) * inverseCellWidth);
+  const glm::vec3 maxGridIndex = glm::floor((pos[index] - gridMin + glm::vec3(maxSearchDistance)) * inverseCellWidth);
 
-  const glm::vec3 gridIndex = glm::floor((pos[index] - gridMin) * inverseCellWidth);
+  const int minX = imax(0, int(minGridIndex.x));
+  const int minY = imax(0, int(minGridIndex.y));
+  const int minZ = imax(0, int(minGridIndex.z));
 
-  const int minX = imax(0, int(std::floor(gridIndex.x + halfX) == gridIndex.x ? gridIndex.x : gridIndex.x - 1));
-  const int minY = imax(0, int(std::floor(gridIndex.y + halfY) == gridIndex.y ? gridIndex.y : gridIndex.y - 1));
-  const int minZ = imax(0, int(std::floor(gridIndex.z + halfZ) == gridIndex.z ? gridIndex.z : gridIndex.z - 1));
-
-  const int maxX = imin(gridResolution - 1, int(std::floor(gridIndex.x + halfX) == gridIndex.x ? gridIndex.x + 1 : gridIndex.x));
-  const int maxY = imin(gridResolution - 1, int(std::floor(gridIndex.y + halfY) == gridIndex.y ? gridIndex.y + 1 : gridIndex.y));
-  const int maxZ = imin(gridResolution - 1, int(std::floor(gridIndex.z + halfZ) == gridIndex.z ? gridIndex.z + 1 : gridIndex.z));
+  const int maxX = imin(gridResolution - 1, int(maxGridIndex.x));
+  const int maxY = imin(gridResolution - 1, int(maxGridIndex.y));
+  const int maxZ = imin(gridResolution - 1, int(maxGridIndex.z));
 
   glm::vec3 perceivedCenter = glm::vec3(0);
   
@@ -593,19 +588,18 @@ __global__ void kernUpdateVelNeighborSearchCoherent(
     return;
   }
 
-  const float halfX = gridMin.x;
-  const float halfY = gridMin.y;
-  const float halfZ = gridMin.z;
+  const float maxSearchDistance = glm::max(glm::max(rule1Distance, rule2Distance), rule3Distance);
 
-  const glm::vec3 gridIndex = glm::floor((pos[index] - gridMin) * inverseCellWidth);
+  const glm::vec3 minGridIndex = glm::floor((pos[index] - gridMin - glm::vec3(maxSearchDistance)) * inverseCellWidth);
+  const glm::vec3 maxGridIndex = glm::floor((pos[index] - gridMin + glm::vec3(maxSearchDistance)) * inverseCellWidth);
 
-  const int minX = imax(0, int(std::floor(gridIndex.x + halfX) == gridIndex.x ? gridIndex.x : gridIndex.x - 1));
-  const int minY = imax(0, int(std::floor(gridIndex.y + halfY) == gridIndex.y ? gridIndex.y : gridIndex.y - 1));
-  const int minZ = imax(0, int(std::floor(gridIndex.z + halfZ) == gridIndex.z ? gridIndex.z : gridIndex.z - 1));
+  const int minX = imax(0, int(minGridIndex.x));
+  const int minY = imax(0, int(minGridIndex.y));
+  const int minZ = imax(0, int(minGridIndex.z));
 
-  const int maxX = imin(gridResolution - 1, int(std::floor(gridIndex.x + halfX) == gridIndex.x ? gridIndex.x + 1 : gridIndex.x));
-  const int maxY = imin(gridResolution - 1, int(std::floor(gridIndex.y + halfY) == gridIndex.y ? gridIndex.y + 1 : gridIndex.y));
-  const int maxZ = imin(gridResolution - 1, int(std::floor(gridIndex.z + halfZ) == gridIndex.z ? gridIndex.z + 1 : gridIndex.z));
+  const int maxX = imin(gridResolution - 1, int(maxGridIndex.x));
+  const int maxY = imin(gridResolution - 1, int(maxGridIndex.y));
+  const int maxZ = imin(gridResolution - 1, int(maxGridIndex.z));
 
   glm::vec3 perceivedCenter = glm::vec3(0);
 
