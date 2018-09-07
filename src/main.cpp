@@ -222,9 +222,10 @@ void initShaders(GLuint * program) {
   void mainLoop() {
     double fps = 0;
     double timebase = 0;
+    double timePerFrame = 0;
     int frame = 0;
 
-    const uint32_t maxPerfTicks = 15;
+    const uint32_t maxPerfTicks = 30;
     const uint32_t skipTicks = 5;
     uint32_t perfTicks = 0;
 
@@ -243,16 +244,18 @@ void initShaders(GLuint * program) {
         fps = frame / (time - timebase);
         timebase = time;
         frame = 0;
+        timePerFrame = (1000.0 / fps);
 
 #ifdef RUN_TIMED_PERF
         if (perfTicks > skipTicks) {
           if (perfTicks < maxPerfTicks)
           {
-            sumTimePerFrame += (1000.0 / fps);
+            std::cout << "Recording Time Per Frame: " << timePerFrame << '\n';
+            sumTimePerFrame += timePerFrame;
           }
           else
           {
-            finalTimePerFrame = sumTimePerFrame / (maxPerfTicks - skipTicks);
+            finalTimePerFrame = sumTimePerFrame / (maxPerfTicks - skipTicks - 1);
             break;
           }
         }
@@ -270,7 +273,7 @@ void initShaders(GLuint * program) {
       ss << " fps] ";
       ss << "[";
       ss.precision(4);
-      ss << std::fixed << 1000.0f / fps;
+      ss << std::fixed << timePerFrame;
       ss << " ms] " << deviceName;
       glfwSetWindowTitle(window, ss.str().c_str());
 
