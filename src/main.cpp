@@ -12,10 +12,14 @@
 // Configuration
 // ================
 
+double finalTimePerFrame = 0.0;
+
 // LOOK-2.1 LOOK-2.3 - toggles for UNIFORM_GRID and COHERENT_GRID
-#define VISUALIZE 1
+#define VISUALIZE 0
 #define UNIFORM_GRID 0
 #define COHERENT_GRID 0
+
+#define RUN_TIMED_PERF
 
 // LOOK-1.2 - change this to adjust particle count in the simulation
 const int N_FOR_VIS = 5000;
@@ -30,6 +34,10 @@ int main(int argc, char* argv[]) {
   if (init(argc, argv)) {
     mainLoop();
     Boids::endSimulation();
+#ifdef RUN_TIMED_PERF
+    std::cout << "Final Recorded Time Per Frame (avg): " << finalTimePerFrame << '\n';
+    getchar();
+#endif
     return 0;
   } else {
     return 1;
@@ -39,7 +47,6 @@ int main(int argc, char* argv[]) {
 //-------------------------------
 //---------RUNTIME STUFF---------
 //-------------------------------
-
 std::string deviceName;
 GLFWwindow *window;
 
@@ -217,6 +224,12 @@ void initShaders(GLuint * program) {
     double timebase = 0;
     int frame = 0;
 
+    const uint32_t maxPerfTicks = 15;
+    const uint32_t skipTicks = 5;
+    uint32_t perfTicks = 0;
+
+    double sumTimePerFrame = 0.0;
+
     Boids::unitTest(); // LOOK-1.2 We run some basic example code to make sure
                        // your CUDA development setup is ready to go.
 
@@ -230,6 +243,22 @@ void initShaders(GLuint * program) {
         fps = frame / (time - timebase);
         timebase = time;
         frame = 0;
+
+#ifdef RUN_TIMED_PERF
+        if (perfTicks > skipTicks) {
+          if (perfTicks < maxPerfTicks)
+          {
+            sumTimePerFrame += (1000.0 / fps);
+          }
+          else
+          {
+            finalTimePerFrame = sumTimePerFrame / (maxPerfTicks - skipTicks);
+            break;
+          }
+        }
+
+        ++perfTicks;
+#endif
       }
 
       runCUDA();
