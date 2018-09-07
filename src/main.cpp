@@ -16,13 +16,13 @@ double finalTimePerFrame = 0.0;
 
 // LOOK-2.1 LOOK-2.3 - toggles for UNIFORM_GRID and COHERENT_GRID
 #define VISUALIZE 0
-#define UNIFORM_GRID 0
-#define COHERENT_GRID 0
+#define UNIFORM_GRID 1
+#define COHERENT_GRID 1
 
 #define RUN_TIMED_PERF
 
 // LOOK-1.2 - change this to adjust particle count in the simulation
-const int N_FOR_VIS = 5000;
+const int N_FOR_VIS = 5000000;
 const float DT = 0.2f;
 
 /**
@@ -35,7 +35,6 @@ int main(int argc, char* argv[]) {
     mainLoop();
     Boids::endSimulation();
 #ifdef RUN_TIMED_PERF
-    std::cout << "Final Recorded Time Per Frame (avg): " << finalTimePerFrame << '\n';
     getchar();
 #endif
     return 0;
@@ -256,6 +255,7 @@ void initShaders(GLuint * program) {
           else
           {
             finalTimePerFrame = sumTimePerFrame / (maxPerfTicks - skipTicks - 1);
+            std::cout << "Final Recorded Time Per Frame (avg): " << finalTimePerFrame << '\n';
             break;
           }
         }
