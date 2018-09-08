@@ -57,7 +57,7 @@ As we increase the number of boids, there is a general trend of increase in fram
 ![](images/algorithm_gtx1060.PNG)
 
 
-| Boid Count  | Naive                              | Uniform Grid                          | Coherent Grid   |
+| Boid Count  | Naive (ms)                              | Uniform Grid (ms)                          | Coherent Grid (ms)   |
 | ----------- |------------------------------------|-------------------------------------- |-----------------|
 | 5,000       | 1.73356                            | 1.69154                               | 1.79578         |
 | 50,000      | 63.0121                            | 3.09724                               | 2.10838         |
@@ -84,7 +84,7 @@ If we change the block size we see performance issues for sizes less than 32. Th
 ![](images/block_size_all.PNG)
 
 
-| Block Size  | GTX 970      | GTX 1060        |
+| Block Size  | GTX 970 (ms)      | GTX 1060 (ms)        |
 | ----------- | ------------ | --------------- |
 | 4           | 8.75682      | 8.32634         |
 | 8           | 5.3235       | 5.14231         |
@@ -106,7 +106,7 @@ Why or why not?`
 
 ![](images/neighbor_cell_test_gtx1060.PNG)
 
-| Boid Count  | 8 cell test   | 27 cell test  |
+| Boid Count  | 8 cell test (ms)   | 27 cell test (ms)  |
 | ----------- | ------------- | ------------- |
 | 5,000       | 1.79578       | 1.7994        |
 | 50,000      | 2.10838       | 1.99957       |
@@ -139,7 +139,7 @@ int TotalSquareSide = 3.0f * CellWidth; // Which Equals to 3 x Search Radius
 
 ![](images/neighbor_cell_test_gtx970.PNG)
 
-| Boid Count  | 8 cell test   | 27 cell test  |
+| Boid Count  | 8 cell test (ms)   | 27 cell test (ms)  |
 | ----------- | ------------- | ------------- |
 | 5,000       | 1.26449       | 1.14823       |
 | 50,000      | 1.45266       | 1.17393       |
