@@ -22,7 +22,7 @@ double finalTimePerFrame = 0.0;
 #define RUN_TIMED_PERF
 
 // LOOK-1.2 - change this to adjust particle count in the simulation
-const int N_FOR_VIS = 5000000;
+const int N_FOR_VIS = 20000;
 const float DT = 0.2f;
 
 /**
